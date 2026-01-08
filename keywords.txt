@@ -1,0 +1,75 @@
+#######################################
+# Vexor Library - Syntax Highlighting
+#######################################
+
+#######################################
+# DATATYPES (BLUE)
+#######################################
+Sensor	KEYWORD1
+LedColor	KEYWORD1
+
+#######################################
+# CLASS (BROWN)
+#######################################
+Vexor	KEYWORD2
+
+#######################################
+# METHODS (ORANGE)
+#######################################
+begin	KEYWORD2
+
+readFrontSensors	KEYWORD2
+readLineSensors	KEYWORD2
+readSensor	KEYWORD2
+sensorPullUp	KEYWORD2
+reverseSensorSignal	KEYWORD2
+
+motor	KEYWORD2
+stop	KEYWORD2
+reverseRightMotor	KEYWORD2
+reverseLeftMotor	KEYWORD2
+motorEnable	KEYWORD2
+motorDisable	KEYWORD2
+rightMotorCurrent	KEYWORD2
+leftMotorCurrent	KEYWORD2
+
+setRGB	KEYWORD2
+setRed	KEYWORD2
+setGreen	KEYWORD2
+setBlue	KEYWORD2
+setWhite	KEYWORD2
+ledOff	KEYWORD2
+setHexColor	KEYWORD2
+setColor	KEYWORD2
+ledBlink	KEYWORD2
+ledBlinkHex	KEYWORD2
+
+startSignal	KEYWORD2
+useStartModule	KEYWORD2
+getIRPin	KEYWORD2
+
+getServoPin	KEYWORD2
+deployFlag	KEYWORD2
+
+#######################################
+# ENUM VALUES (GREEN)
+#######################################
+FL90	LITERAL1
+FL45	LITERAL1
+CC	LITERAL1
+FR45	LITERAL1
+FR90	LITERAL1
+LINE_LEFT	LITERAL1
+LINE_RIGHT	LITERAL1
+
+COLOR_RED	LITERAL1
+COLOR_GREEN	LITERAL1
+COLOR_BLUE	LITERAL1
+COLOR_YELLOW	LITERAL1
+COLOR_CYAN	LITERAL1
+COLOR_MAGENTA	LITERAL1
+COLOR_WHITE	LITERAL1
+COLOR_ORANGE	LITERAL1
+COLOR_PURPLE	LITERAL1
+COLOR_PINK	LITERAL1
+COLOR_OFF	LITERAL1
