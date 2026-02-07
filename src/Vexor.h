@@ -132,6 +132,8 @@ private:
     bool _reverseRightMotor = false;
     bool _reverseLeftMotor = false;
     bool _reverseSensor = false;
+    bool alreadyDeployed = false;
+	bool flagStart = false;
     
     // ==================== CONSTANTS ====================
     static constexpr double _AIPROPI = 0.000455;   ///< Current sensor sensitivity (A/A)
@@ -149,10 +151,16 @@ private:
     
     // ==================== PRIVATE METHODS ====================
     void _initPins();
-    uint8_t _percentToPWM(int8_t percent);
+    int _percentToPWM(int8_t percent);
     void _sendWS2812(uint8_t r, uint8_t g, uint8_t b);
     void _hexToRGB(uint32_t hexColor, uint8_t &r, uint8_t &g, uint8_t &b);
     void _applyBrightness(uint8_t &r, uint8_t &g, uint8_t &b, uint8_t brightness);
+	void checkTime();
+	
+	// ==================== Time ====================
+    uint32_t startTimeFlag = 0;
+	uint16_t durationMS_flag = 0;
+	
 };
 
 #endif // VEXOR_H

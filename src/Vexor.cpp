@@ -56,6 +56,7 @@ void Vexor::_initPins() {
     DDRB |= _BV(_RGB_LED_BIT);
     PORTB &= ~_BV(_RGB_LED_BIT);
     ledOff();
+	checkTime();
 }
 
 // ==================== SENSOR METHODS ====================
@@ -97,6 +98,7 @@ uint8_t Vexor::readFrontSensors() {
 
     // Move old bit4 -> bit3
     fixed |= (raw & 0b10000) >> 1;
+	checkTime();
 
     return fixed;
 }
@@ -108,6 +110,7 @@ uint8_t Vexor::readFrontSensors() {
 uint8_t Vexor::readLineSensors() {
     // Read pins A0-A1 (PINC register bits 0-1)
     return PINC & 0b11;
+	checkTime();
 }
 
 /**
@@ -131,6 +134,7 @@ bool Vexor::readSensor(Sensor s) {
         case FR90: sensorValue = digitalRead(_FR90); break;
         default:   return false;
     }
+	checkTime();
     
     // Apply reversal only to front sensors
     return _reverseSensor ? !sensorValue : sensorValue;
@@ -149,6 +153,8 @@ void Vexor::sensorPullUp(bool state) {
     pinMode(_CC, mode);
     pinMode(_FR45, mode);
     pinMode(_FR90, mode);
+	
+	checkTime();
 }
 
 /**
@@ -157,6 +163,7 @@ void Vexor::sensorPullUp(bool state) {
  */
 void Vexor::reverseSensorSignal(bool state) {
     _reverseSensor = state;
+	checkTime();
 }
 
 // ==================== MOTOR CONTROL ====================
@@ -176,24 +183,36 @@ void Vexor::motor(int8_t leftPercent, int8_t rightPercent) {
     rightPercent = constrain(rightPercent, -100, 100);
     
     // Convert to PWM values
-    uint8_t leftPWM  = _percentToPWM(leftPercent);
-    uint8_t rightPWM = _percentToPWM(rightPercent);
+    int leftPWM  = _percentToPWM(leftPercent);
+    int rightPWM = _percentToPWM(rightPercent);
     
     // Left motor control
-    digitalWrite(_MOTOR_L_DIR, leftPercent >= 0 ? HIGH : LOW);
-    analogWrite(_MOTOR_L_PWM, leftPWM);
+    if (leftPWM >= 0) {
+        digitalWrite(_MOTOR_L_DIR, HIGH);
+        analogWrite(_MOTOR_L_PWM, leftPWM);
+    } else {
+        digitalWrite(_MOTOR_L_DIR, LOW);
+        analogWrite(_MOTOR_L_PWM, abs(leftPWM));
+    }
     
-    // Right motor control (direction logic may be inverted depending on wiring)
-    digitalWrite(_MOTOR_R_DIR, rightPercent >= 0 ? LOW : HIGH);
-    analogWrite(_MOTOR_R_PWM, rightPWM);
+    // Right motor control
+    if (rightPWM >= 0) {
+        digitalWrite(_MOTOR_R_DIR, LOW);
+        analogWrite(_MOTOR_R_PWM, rightPWM);
+    } else {
+        digitalWrite(_MOTOR_R_DIR, HIGH);
+        analogWrite(_MOTOR_R_PWM, abs(rightPWM));
+    }
+    
+    checkTime();
 }
 
 /**
  * @brief Stop both motors
  */
 void Vexor::stop() {
-    analogWrite(_MOTOR_L_PWM, 0);
-    analogWrite(_MOTOR_R_PWM, 0);
+     motor(0,0);
+	checkTime();
 }
 
 /**
@@ -202,8 +221,9 @@ void Vexor::stop() {
  * @return PWM value (0-255)
  * @private
  */
-uint8_t Vexor::_percentToPWM(int8_t percent) {
-    return map(abs(percent), 0, 100, 0, 255);
+int Vexor::_percentToPWM(int8_t percent) {
+    // Map (-100..100) to PWM (-254..254)
+    return map(percent, -100, 100, -254, 254);
 }
 
 /**
@@ -212,6 +232,7 @@ uint8_t Vexor::_percentToPWM(int8_t percent) {
  */
 void Vexor::reverseRightMotor(bool state) {
     _reverseRightMotor = state;
+	checkTime();
 }
 
 /**
@@ -220,6 +241,7 @@ void Vexor::reverseRightMotor(bool state) {
  */
 void Vexor::reverseLeftMotor(bool state) {
     _reverseLeftMotor = state;
+	checkTime();
 }
 
 /**
@@ -230,6 +252,7 @@ float Vexor::rightMotorCurrent() {
     int adc = analogRead(_R_CURRENT_PIN);
     float voltage = (adc * _VREF) / _ADC_MAX;
     float current = voltage / (_RIPROPI * _AIPROPI);
+	checkTime();
     return current;
 }
 
@@ -241,6 +264,7 @@ float Vexor::leftMotorCurrent() {
     int adc = analogRead(_L_CURRENT_PIN);
     float voltage = (adc * _VREF) / _ADC_MAX;
     float current = voltage / (_RIPROPI * _AIPROPI);
+	checkTime();
     return current;
 }
 
@@ -251,6 +275,7 @@ void Vexor::motorEnable() {
     if (!_useStartModule) {
         digitalWrite(_START_PIN, HIGH);
     }
+	checkTime();
 }
 
 /**
@@ -260,6 +285,7 @@ void Vexor::motorDisable() {
     if (!_useStartModule) {
         digitalWrite(_START_PIN, LOW);
     }
+	checkTime();
 }
 
 // ==================== LED CONTROL ====================
@@ -380,6 +406,7 @@ void Vexor::_sendWS2812(uint8_t r, uint8_t g, uint8_t b) {
  */
 void Vexor::setRGB(uint8_t r, uint8_t g, uint8_t b) {
     _sendWS2812(r, g, b);
+	checkTime();
 }
 
 /**
@@ -388,6 +415,7 @@ void Vexor::setRGB(uint8_t r, uint8_t g, uint8_t b) {
  */
 void Vexor::setRed(uint8_t brightness) {
     _sendWS2812(brightness, 0, 0);
+	checkTime();
 }
 
 /**
@@ -396,6 +424,7 @@ void Vexor::setRed(uint8_t brightness) {
  */
 void Vexor::setGreen(uint8_t brightness) {
     _sendWS2812(0, brightness, 0);
+	checkTime();
 }
 
 /**
@@ -404,6 +433,7 @@ void Vexor::setGreen(uint8_t brightness) {
  */
 void Vexor::setBlue(uint8_t brightness) {
     _sendWS2812(0, 0, brightness);
+	checkTime();
 }
 
 /**
@@ -412,6 +442,7 @@ void Vexor::setBlue(uint8_t brightness) {
  */
 void Vexor::setWhite(uint8_t brightness) {
     _sendWS2812(brightness, brightness, brightness);
+	checkTime();
 }
 
 /**
@@ -419,6 +450,7 @@ void Vexor::setWhite(uint8_t brightness) {
  */
 void Vexor::ledOff() {
     _sendWS2812(0, 0, 0);
+	checkTime();
 }
 
 /**
@@ -441,6 +473,7 @@ void Vexor::_hexToRGB(uint32_t hexColor, uint8_t &r, uint8_t &g, uint8_t &b) {
         g = (hexColor >> 8) & 0xFF;
         b = hexColor & 0xFF;
     }
+	checkTime();
 }
 
 /**
@@ -457,6 +490,7 @@ void Vexor::_applyBrightness(uint8_t &r, uint8_t &g, uint8_t &b, uint8_t brightn
         g = (g * brightness) / 255;
         b = (b * brightness) / 255;
     }
+	checkTime();
 }
 
 /**
@@ -469,6 +503,7 @@ void Vexor::setHexColor(uint32_t hexColor, uint8_t brightness) {
     _hexToRGB(hexColor, r, g, b);
     _applyBrightness(r, g, b, brightness);
     setRGB(r, g, b);
+	checkTime();
 }
 
 /**
@@ -490,6 +525,7 @@ void Vexor::setColor(LedColor color, uint8_t brightness) {
         case COLOR_PINK:    setRGB(brightness, brightness/4, brightness/2); break;
         case COLOR_OFF:     ledOff(); break;
     }
+	checkTime();
 }
 
 /**
@@ -528,6 +564,7 @@ void Vexor::ledBlink(uint16_t intervalMS, int count, LedColor color, uint8_t bri
     }
     
     _ledBlinkActive = false;
+	checkTime();
 }
 
 /**
@@ -555,6 +592,7 @@ void Vexor::ledBlinkHex(uint16_t intervalMS, int count, uint32_t hexColor, uint8
     }
     
     _ledBlinkActive = false;
+	checkTime();
 }
 
 // ==================== START MODULE ====================
@@ -564,7 +602,9 @@ void Vexor::ledBlinkHex(uint16_t intervalMS, int count, uint32_t hexColor, uint8
  * @return true if start button is pressed, false otherwise
  */
 bool Vexor::startSignal() {
+	checkTime();
     return _useStartModule ? digitalRead(_START_PIN) : false;
+
 }
 
 /**
@@ -585,6 +625,7 @@ void Vexor::useStartModule(bool state) {
     } else {
         pinMode(_START_PIN, OUTPUT);    // Use as output for manual enable
     }
+	checkTime();
 }
 
 // ==================== SERVO & FLAG ====================
@@ -602,21 +643,32 @@ uint8_t Vexor::getServoPin() {
  * @param durationMS Flag deployment duration in milliseconds
  */
 void Vexor::deployFlag(uint16_t durationMS) {
-    static bool alreadyDeployed = false;
-    static uint32_t startTime = 0;
-    
+
+     durationMS_flag = durationMS;
+	 flagStart = true;
+	  
     // Prevent multiple deployments
     if (alreadyDeployed) return;
     
     // Start flag deployment
-    if (startTime == 0) {
+    if (startTimeFlag == 0) {
         digitalWrite(_N20_PIN, HIGH);
-        startTime = millis();
+        startTimeFlag = millis();
     }
     
     // Check if duration has elapsed
-    if (millis() - startTime >= durationMS) {
+    if (millis() - startTimeFlag >= durationMS_flag) {
         digitalWrite(_N20_PIN, LOW);
         alreadyDeployed = true;
     }
+		checkTime();
+}
+
+void Vexor::checkTime(){
+	if(alreadyDeployed == false && flagStart == true){
+		if (millis() - startTimeFlag >= durationMS_flag) {
+			digitalWrite(_N20_PIN, LOW);
+			alreadyDeployed = true;
+		}
+	}
 }
